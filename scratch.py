@@ -1,0 +1,105 @@
+import pandas as pd
+import sqlite3
+
+conn = sqlite3.connect('movies_model.db')
+cur = conn.cursor()
+
+pd.read_sql(""" select * from dim_genres """, conn)
+pd.read_sql(""" select * from dim_production_companies """, conn)
+pd.read_sql(""" select * from fact_movie_details """, conn)
+
+x = pd.read_sql(""" select distinct(genre) from dim_genres """, conn)
+for dex in x.index:
+    print(x['genre'][dex])
+
+pd.read_sql("""
+            SELECT 
+                strftime('%Y', RELEASE_DATE) AS RELEASE_YEAR,
+                PROD_COMPANY_NAME,
+                SUM( CASE WHEN UPPER(GENRE) = 'ANIMATION' THEN 1 ELSE 0 END) AS N_ANIMATION ,
+                SUM( CASE WHEN UPPER(GENRE) = 'COMEDY' THEN 1 ELSE 0 END) AS N_COMEDY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'FAMILY' THEN 1 ELSE 0 END) AS N_FAMILY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'ADVENTURE' THEN 1 ELSE 0 END) AS N_ADVENTURE ,
+                SUM( CASE WHEN UPPER(GENRE) = 'FANTASY' THEN 1 ELSE 0 END) AS N_FANTASY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'DRAMA' THEN 1 ELSE 0 END) AS N_DRAMA ,
+                SUM( CASE WHEN UPPER(GENRE) = 'ROMANCE' THEN 1 ELSE 0 END) AS N_ROMANCE ,
+                SUM( CASE WHEN UPPER(GENRE) = 'ACTION' THEN 1 ELSE 0 END) AS N_ACTION ,
+                SUM( CASE WHEN UPPER(GENRE) = 'CRIME' THEN 1 ELSE 0 END) AS N_CRIME ,
+                SUM( CASE WHEN UPPER(GENRE) = 'THRILLER' THEN 1 ELSE 0 END) AS N_THRILLER ,
+                SUM( CASE WHEN UPPER(GENRE) = 'HISTORY' THEN 1 ELSE 0 END) AS N_HISTORY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'SCIENCE FICTION' THEN 1 ELSE 0 END) AS N_SCIENCE_FICTION ,
+                SUM( CASE WHEN UPPER(GENRE) = 'MYSTERY' THEN 1 ELSE 0 END) AS N_MYSTERY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'HORROR' THEN 1 ELSE 0 END) AS N_HORROR ,
+                SUM( CASE WHEN UPPER(GENRE) = 'WAR' THEN 1 ELSE 0 END) AS N_WAR ,
+                SUM( CASE WHEN UPPER(GENRE) = 'FOREIGN' THEN 1 ELSE 0 END) AS N_FOREIGN ,
+                SUM( CASE WHEN UPPER(GENRE) = 'DOCUMENTARY' THEN 1 ELSE 0 END) AS N_DOCUMENTARY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'WESTERN' THEN 1 ELSE 0 END) AS N_WESTERN ,
+                SUM( CASE WHEN UPPER(GENRE) = 'MUSIC' THEN 1 ELSE 0 END) AS N_MUSIC ,
+                SUM( CASE WHEN UPPER(GENRE) = 'TV MOVIE' THEN 1 ELSE 0 END) AS N_TV_MOVIE 
+                FROM FACT_MOVIE_DETAILS
+                JOIN DIM_GENRES
+                    ON DIM_GENRES.MOVIE_ID = FACT_MOVIE_DETAILS.MOVIE_ID
+                JOIN DIM_PRODUCTION_COMPANIES
+                    ON DIM_PRODUCTION_COMPANIES.MOVIE_ID = FACT_MOVIE_DETAILS.MOVIE_ID 
+                GROUP BY 
+                RELEASE_YEAR, 
+                PROD_COMPANY_NAME
+                """, conn)
+
+
+
+sql = """ 
+        WITH PROD_REL_GENRE_BY_YEAR AS (
+            SELECT 
+                strftime('%Y', RELEASE_DATE) AS RELEASE_YEAR,
+                PROD_COMPANY_NAME,
+                SUM( CASE WHEN UPPER(GENRE) = 'ANIMATION' THEN 1 ELSE 0 END) AS N_ANIMATION ,
+                SUM( CASE WHEN UPPER(GENRE) = 'COMEDY' THEN 1 ELSE 0 END) AS N_COMEDY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'FAMILY' THEN 1 ELSE 0 END) AS N_FAMILY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'ADVENTURE' THEN 1 ELSE 0 END) AS N_ADVENTURE ,
+                SUM( CASE WHEN UPPER(GENRE) = 'FANTASY' THEN 1 ELSE 0 END) AS N_FANTASY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'DRAMA' THEN 1 ELSE 0 END) AS N_DRAMA ,
+                SUM( CASE WHEN UPPER(GENRE) = 'ROMANCE' THEN 1 ELSE 0 END) AS N_ROMANCE ,
+                SUM( CASE WHEN UPPER(GENRE) = 'ACTION' THEN 1 ELSE 0 END) AS N_ACTION ,
+                SUM( CASE WHEN UPPER(GENRE) = 'CRIME' THEN 1 ELSE 0 END) AS N_CRIME ,
+                SUM( CASE WHEN UPPER(GENRE) = 'THRILLER' THEN 1 ELSE 0 END) AS N_THRILLER ,
+                SUM( CASE WHEN UPPER(GENRE) = 'HISTORY' THEN 1 ELSE 0 END) AS N_HISTORY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'SCIENCE FICTION' THEN 1 ELSE 0 END) AS N_SCIENCE_FICTION ,
+                SUM( CASE WHEN UPPER(GENRE) = 'MYSTERY' THEN 1 ELSE 0 END) AS N_MYSTERY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'HORROR' THEN 1 ELSE 0 END) AS N_HORROR ,
+                SUM( CASE WHEN UPPER(GENRE) = 'WAR' THEN 1 ELSE 0 END) AS N_WAR ,
+                SUM( CASE WHEN UPPER(GENRE) = 'FOREIGN' THEN 1 ELSE 0 END) AS N_FOREIGN ,
+                SUM( CASE WHEN UPPER(GENRE) = 'DOCUMENTARY' THEN 1 ELSE 0 END) AS N_DOCUMENTARY ,
+                SUM( CASE WHEN UPPER(GENRE) = 'WESTERN' THEN 1 ELSE 0 END) AS N_WESTERN ,
+                SUM( CASE WHEN UPPER(GENRE) = 'MUSIC' THEN 1 ELSE 0 END) AS N_MUSIC ,
+                SUM( CASE WHEN UPPER(GENRE) = 'TV MOVIE' THEN 1 ELSE 0 END) AS N_TV_MOVIE 
+                FROM FACT_MOVIE_DETAILS
+                JOIN DIM_GENRES
+                    ON DIM_GENRES.MOVIE_ID = FACT_MOVIE_DETAILS.MOVIE_ID
+                JOIN DIM_PRODUCTION_COMPANIES
+                    ON DIM_PRODUCTION_COMPANIES.MOVIE_ID = FACT_MOVIE_DETAILS.MOVIE_ID 
+                GROUP BY 
+                RELEASE_YEAR, 
+                PROD_COMPANY_NAME
+        ),
+        AGGREGATES AS (
+        SELECT 
+            strftime('%Y', RELEASE_DATE) AS RELEASE_YEAR, 
+            PROD_COMPANY_NAME AS PROD_COMPANY_NAME, 
+            SUM(BUDGET) AS BUDGET, 
+            SUM(REVENUE) AS REVENUE, 
+            SUM(REVENUE - BUDGET) AS PROFIT, 
+            AVG(POPULARITY) AS POPULARITY
+        FROM FACT_MOVIE_DETAILS
+        JOIN DIM_GENRES
+            ON DIM_GENRES.MOVIE_ID = FACT_MOVIE_DETAILS.MOVIE_ID
+        JOIN DIM_PRODUCTION_COMPANIES
+            ON DIM_PRODUCTION_COMPANIES.MOVIE_ID = FACT_MOVIE_DETAILS.MOVIE_ID
+         GROUP BY RELEASE_YEAR, PROD_COMPANY_NAME
+        )
+
+        SELECT *
+        FROM AGGREGATES
+        LEFT JOIN PROD_REL_GENRE_BY_YEAR USING (RELEASE_YEAR, PROD_COMPANY_NAME)
+"""
+pd.read_sql(sql, conn)
